@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>船厂 AI 收集工具</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    min-height: 100vh; color: #1a202c;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 6px; }
+  .sub { color: #4a5568; font-size: 14px; margin-bottom: 24px; }
+  .card {
+    background: white; border-radius: 16px; padding: 22px 24px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    margin-bottom: 16px;
+  }
+  .card strong.title { font-size: 15px; }
+  input[type="text"], input[type="password"], input[type="url"], textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid #cbd5e0;
+    border-radius: 8px; font: 14px -apple-system, sans-serif;
+    margin-top: 8px;
+  }
+  input:focus, textarea:focus { border-color: #4299e1; outline: none; }
+  textarea { font: 13px ui-monospace, Menlo, monospace; resize: vertical; }
+  label { font-size: 12px; color: #718096; }
+  .btn {
+    background: #4299e1; color: white; padding: 10px 16px;
+    border-radius: 8px; font-weight: 600; font-size: 14px;
+    border: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background .15s;
+  }
+  .btn:hover:not(:disabled) { background: #3182ce; }
+  .btn:disabled { background: #cbd5e0; cursor: not-allowed; opacity: .8; }
+  .btn.green { background: #48bb78; }
+  .btn.green:hover:not(:disabled) { background: #38a169; }
+  .btn.red { background: #fed7d7; color: #742a2a; }
+  .btn.red:hover { background: #feb2b2; }
+  .btn.warn { background: #ed8936; }
+  .btn.warn:hover:not(:disabled) { background: #dd6b20; }
+  .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+  .status {
+    background: #1a202c; color: #cbd5e0; border-radius: 10px;
+    padding: 12px 14px; font: 12px ui-monospace, Menlo, monospace;
+    white-space: pre-wrap; max-height: 200px; overflow-y: auto;
+    margin-top: 12px;
+  }
+  .status .ok { color: #68d391; }
+  .status .warn { color: #fbd38d; }
+  .status .err { color: #fc8181; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    margin-top: 12px;
+  }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-grid label { display: block; margin-bottom: 2px; }
+  .form-grid input, .form-grid textarea { margin-top: 0; }
+
+  .item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center; gap: 10px;
+    padding: 8px 12px; background: white;
+    border: 1px solid #e2e8f0; border-radius: 8px;
+    margin-bottom: 6px; font-size: 13px;
+  }
+  .item .name { font-weight: 600; }
+  .item .country { color: #718096; font-size: 12px; }
+  .item .del {
+    background: #fed7d7; color: #742a2a; border: none;
+    padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
+  }
+  .item .del:hover { background: #feb2b2; }
+  .empty {
+    color: #a0aec0; font-size: 13px; text-align: center;
+    padding: 20px;
+  }
+  .badge {
+    display: inline-block; background: #4299e1; color: white;
+    padding: 2px 10px; border-radius: 12px; font-size: 13px;
+    margin-left: 6px;
+  }
+
+  details { margin-top: 8px; }
+  details summary { cursor: pointer; color: #2b6cb0; font-size: 13px; }
+  .small-tip { color: #718096; font-size: 12px; margin: 4px 0 0; }
+
+  .downloads { display: none; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .downloads.show { display: flex; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>🤖 船厂 AI 收集工具</h1>
+<div class="sub">贴一个船厂网址 → AI 自动从网站抓信息 → 攒够批量导出孚盟 xlsx。原先的 <a href="船厂转换工具.html">船厂转换工具</a> 功能不变,这是单独的另一个工具。</div>
+
+<!-- 顶部直链:打开共享 Google Sheet -->
+<div style="margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;">
+  <a href="https://docs.google.com/spreadsheets/d/1ic3g82rENnJOIzJUFxonkZB8h0ReSm6jSeHE_uRhXyM/edit?usp=sharing"
+     target="_blank"
+     style="display:inline-flex;align-items:center;gap:8px;background:#0f9d58;color:white;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;box-shadow:0 2px 8px rgba(15,157,88,0.25);">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+      <line x1="3" y1="9" x2="21" y2="9"></line>
+      <line x1="3" y1="15" x2="21" y2="15"></line>
+      <line x1="9" y1="3" x2="9" y2="21"></line>
+      <line x1="15" y1="3" x2="15" y2="21"></line>
+    </svg>
+    打开共享 Google Sheet (全球船厂数据库)
+  </a>
+</div>
+
+<!-- 设置 -->
+<details class="card" id="settingsCard">
+  <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;">
+    <span><strong class="title">⚙️ 后端与同步设置</strong> <span id="keyStatus" style="font-size:13px;color:#48bb78;margin-left:8px;">✓ AI Key 已改为 Vercel 后端读取</span></span>
+    <span style="font-size:12px;color:#718096;">点击展开 / 修改</span>
+  </summary>
+
+  <p class="small-tip" style="margin-top:10px;">
+    AI 抓取现在会调用 <code>/api/extract</code>。Gemini/OpenAI Key 请放在 Vercel Project → Settings → Environment Variables，不要写在 HTML 里。
+  </p>
+  <p class="small-tip">需要配置的变量名：<code>GEMINI_API_KEY</code>；可选兜底：<code>OPENAI_API_KEY</code></p>
+
+  <p class="small-tip" style="margin-top:14px;"><strong>📊 Google Sheet 同步</strong> — 保存到收集列表时自动同步到共享 Sheet</p>
+  <input type="text" id="sheetWebappUrl" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off">
+  <p class="small-tip">配置 Apps Script Web App URL，留空则不同步。</p>
+</details>
+
+<!-- 加新船厂 -->
+<div class="card">
+  <strong class="title">📍 添加一家船厂</strong>
+  <p class="small-tip">直接贴官网 URL，后端 AI 会访问网站并抽取信息。</p>
+  <input type="url" id="urlInput" placeholder="https://www.example-shipyard.com">
+  <div class="btn-row">
+    <button class="btn" id="btnExtract">🔍 AI 抓取信息</button>
+  </div>
+
+  <div id="extractResult" hidden>
+    <p class="small-tip" style="margin-top:14px;">✏️ AI 抽取结果(可手工修改后保存):</p>
+    <div class="form-grid">
+      <div class="full"><label>公司名 *</label><input type="text" id="r_company"></div>
+      <div><label>Country (英文) *</label><input type="text" id="r_country" placeholder="如 Italy"></div>
+      <div><label>Category</label><select id="r_category" style="width:100%;padding:10px 12px;border:1px solid #cbd5e0;border-radius:8px;font:14px -apple-system,sans-serif;margin-top:8px;background:white;">
+        <option value="Boat Manufacturer">Boat Manufacturer</option>
+        <option value="Boat (Yacht) Designer">Boat (Yacht) Designer</option>
+      </select></div>
+      <div class="full"><label>Business Description</label><textarea id="r_desc" rows="2"></textarea></div>
+      <div class="full"><label>Website</label><input type="text" id="r_website"></div>
+      <div><label>Email</label><input type="text" id="r_email"></div>
+      <div><label>Phone</label><input type="text" id="r_phone"></div>
+      <div><label>LinkedIn</label><input type="text" id="r_linkedin"></div>
+      <div><label>Facebook / Instagram</label><input type="text" id="r_facebook"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn green" id="btnSaveItem">✓ 保存到收集列表</button>
+      <button class="btn red" id="btnDiscard">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 收集列表 -->
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <strong class="title">📦 已收集 <span class="badge" id="count">0</span> 家船厂</strong>
+    <div class="btn-row" style="margin-top:0;">
+      <button class="btn red" id="btnClear">清空列表</button>
+      <button class="btn warn" id="btnConvertAll">📊 全部转 xlsx</button>
+    </div>
+  </div>
+  <div id="list" style="margin-top:14px;"></div>
+
+  <div class="downloads" id="downloads">
+    <button class="btn" id="dlClean" disabled>下载干净文件 <span class="badge" id="badgeClean">— 行</span></button>
+    <button class="btn warn" id="dlIssues" disabled>下载问题数据 <span class="badge" id="badgeIssues">— 行</span></button>
+  </div>
+</div>
+
+<!-- 表格预览(给企业微信文档复用) -->
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <strong class="title">📋 表格预览(12 列)</strong>
+    <button class="btn green" id="btnCopyTable">📋 复制为 Tab 格式(粘到企业微信)</button>
+  </div>
+  <p class="small-tip">和企业微信文档的表头一一对应,粘进去自动对齐。</p>
+  <div style="overflow-x:auto;margin-top:10px;border:1px solid #e2e8f0;border-radius:8px;">
+    <table id="previewTable" style="width:100%;border-collapse:collapse;font-size:12px;min-width:1200px;">
+      <thead style="background:#edf2f7;">
+        <tr>
+          <th style="padding:6px 8px;text-align:left;border:1px solid #e2e8f0;">编号</th>
+          <th style="padding:6px 8px;text-align:left;border:1px solid #e2e8f0;">Company Name</th>
+          <th style="padding:6px 8px;text-align:left;border:1px solid #e2e8f0;">Category</th>
+          <th style="padding:6px 8px;text-align:left;border:1px solid #e2e8f0;">Business Description</th>
+          <th style="padding:6px 8px;text-align:left;border:1px solid #e2e8f0;">Webiste</th>
+          <th style="padding:6px 8px;text-align:left;border:1px solid #e2e8f0;">大区</th>
+          <th style="padding:6px 8px;text-align:left;border:1px solid #e2e8f0;">Country</th>
+          <th style="padding:6px 8px;text-align:left;border:1px solid #e2e8f0;">Phone/Whatsapp</th>
+          <th style="padding:6px 8px;text-align:left;border:1px solid #e2e8f0;">Primary Contact</th>
+          <th style="padding:6px 8px;text-align:left;border:1px solid #e2e8f0;">Company Status</th>
+          <th style="padding:6px 8px;text-align:left;border:1px solid #e2e8f0;">Linkedin</th>
+          <th style="padding:6px 8px;text-align:left;border:1px solid #e2e8f0;">Social Media</th>
+        </tr>
+      </thead>
+      <tbody id="previewBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 状态控制台 -->
+<div class="card">
+  <strong class="title">📟 状态</strong>
+  <div class="status" id="status">[就绪] 贴 URL 开始</div>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+
+<script type="text/x-python" id="convert_py">
+# -*- coding: utf-8 -*-
+"""
+将原始线索表格转换为指定格式的脚本
+
+用法:
+    python convert_leads.py <输入文件.xlsx> [输出文件.xlsx]
+
+例:
+    python convert_leads.py Book1.xlsx 转换后.xlsx
+
+特性:
+- 多联系人会拆成多行,公司信息复制
+- 线索编号写入纯文本: BDBM + yymmdd + 4 位行号(基于运行当天的日期)
+- 区域只对应 9 类: 亚太地区/南部欧洲/非洲/北美洲/南美洲/大洋洲/西北欧/中东中亚/欧洲
+- 国家名输出为中文
+- 所属行业留空
+"""
+
+import re
+import sys
+import os
+from datetime import datetime, timezone, timedelta
+import pandas as pd
+
+# 中国时区 (UTC+8),线索编号里的日期统一按北京时间
+CHINA_TZ = timezone(timedelta(hours=8))
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill
+
+# ============== 配置 ==============
+
+TARGET_HEADERS = [
+    "线索主题*", "来源渠道*", "线索评分", "询盘时间", "需求总量", "需求详细描述",
+    "线索接收人*", "线索接收部门*", "来源链接", "线索编号*", "客户名称*", "区域",
+    "国家*", "地址", "客户归类", "网址", "总机", "所属行业", "主营产品",
+    "线索联系人_联系人姓名", "线索联系人_邮箱账号", "线索联系人_whatsapp",
+    "线索联系人_WeChat", "线索联系人_QQ", "线索联系人_FaceBook",
+    "线索联系人_Instagram", "线索联系人_YouTube", "线索联系人_Telegram",
+    "线索联系人_Twitter(X)", "线索联系人_Skype", "线索联系人_LinkedIn",
+    "线索联系人_ZALO", "线索联系人_Viber", "线索联系人_旺旺", "线索联系人_钉钉",
+    "线索联系人_Tiktok", "线索联系人_Line", "线索联系人_Messenger",
+    "线索联系人_Pinterest", "线索联系人_Reddit", "线索联系人_阿里TM",
+    "线索联系人_Crunchbase", "线索联系人_职位", "线索联系人_Kakaotalk",
+    "线索联系人_Wecom", "线索联系人_Red", "线索联系人_Angellist",
+    "线索联系人_Etsy", "线索联系人_Shopee", "线索联系人_电话",
+    "线索联系人_手机", "线索联系人_备注",
+]
+
+# 线索编号* 在表头中的列号(1 起)
+LEAD_ID_COL = TARGET_HEADERS.index("线索编号*") + 1  # 第 10 列 = J 列
+
+# 区域 -> 线索接收人 映射(对应新的大区分类)
+REGION_RECEIVER = {
+    "亚太地区":   "王建行",   # 中国大陆将被特殊处理 -> 王书显
+    "南部欧洲":   "谢俊烨",
+    "非洲":       "王予涵",
+    "北美洲":     "张天澜",
+    "南美洲":     "尹陆",
+    "大洋洲":     "李梦菲",
+    "西北欧":     "张都督",
+    "中东中亚":   "王予涵",
+    "欧洲":       "张都督",
+}
+
+# 国家(英文) -> 大区
+COUNTRY_REGION = {
+    # 西北欧
+    "United Kingdom": "西北欧", "UK": "西北欧", "Great Britain": "西北欧",
+    "England": "西北欧", "Scotland": "西北欧", "Wales": "西北欧",
+    "Ireland": "西北欧",
+    "Germany": "西北欧",
+    "France": "西北欧",
+    "Netherlands": "西北欧", "Holland": "西北欧",
+    "Belgium": "西北欧",
+    "Luxembourg": "西北欧",
+    "Denmark": "西北欧", "Norway": "西北欧", "Sweden": "西北欧",
+    "Finland": "西北欧", "Iceland": "西北欧",
+    "Austria": "西北欧", "Switzerland": "西北欧",
+    "Liechtenstein": "西北欧",
+    "Luxemburg": "西北欧",  # 拼写变体
+    "Faroe Islands": "西北欧", "Faeroe Islands": "西北欧",
+
+    # 南部欧洲
+    "Italy": "南部欧洲", "Spain": "南部欧洲", "Portugal": "南部欧洲",
+    "Greece": "南部欧洲", "Croatia": "南部欧洲", "Slovenia": "南部欧洲",
+    "Malta": "南部欧洲", "Cyprus": "南部欧洲", "Albania": "南部欧洲",
+    "Bosnia and Herzegovina": "南部欧洲", "Bosnia": "南部欧洲",
+    "Montenegro": "南部欧洲", "North Macedonia": "南部欧洲", "Macedonia": "南部欧洲",
+    "Serbia": "南部欧洲", "Kosovo": "南部欧洲",
+    "Andorra": "南部欧洲", "San Marino": "南部欧洲",
+    "Vatican": "南部欧洲", "Vatican City": "南部欧洲",
+    "Monaco": "南部欧洲",
+    "Gibraltar": "南部欧洲",
+    "Rep North Macedonia": "南部欧洲",  # 数据源里写法
+
+    # 欧洲(其他,主要为东欧/中欧)
+    "Poland": "欧洲", "Czech Republic": "欧洲", "Czechia": "欧洲",
+    "Hungary": "欧洲", "Slovakia": "欧洲", "Romania": "欧洲",
+    "Bulgaria": "欧洲", "Estonia": "欧洲", "Latvia": "欧洲",
+    "Lithuania": "欧洲", "Belarus": "欧洲", "Ukraine": "欧洲",
+    "Russia": "欧洲", "Russian Federation": "欧洲", "Moldova": "欧洲",
+
+    # 中东中亚
+    "Saudi Arabia": "中东中亚", "United Arab Emirates": "中东中亚", "UAE": "中东中亚",
+    "Qatar": "中东中亚", "Bahrain": "中东中亚", "Kuwait": "中东中亚",
+    "Oman": "中东中亚", "Yemen": "中东中亚", "Iran": "中东中亚",
+    "Iraq": "中东中亚", "Israel": "中东中亚", "Palestine": "中东中亚",
+    "Jordan": "中东中亚", "Lebanon": "中东中亚", "Syria": "中东中亚",
+    "Turkey": "中东中亚",
+    "Kazakhstan": "中东中亚", "Uzbekistan": "中东中亚",
+    "Turkmenistan": "中东中亚", "Kyrgyzstan": "中东中亚",
+    "Tajikistan": "中东中亚", "Afghanistan": "中东中亚",
+    "Armenia": "中东中亚", "Azerbaijan": "中东中亚", "Georgia": "中东中亚",
+
+    # 北美洲(含中美洲、加勒比)
+    "United States": "北美洲", "United States of America": "北美洲",
+    "USA": "北美洲", "US": "北美洲", "U.S.": "北美洲", "U.S.A.": "北美洲",
+    "Canada": "北美洲", "Mexico": "北美洲",
+    "Bahamas": "北美洲", "Cuba": "北美洲", "Jamaica": "北美洲",
+    "Haiti": "北美洲", "Dominican Republic": "北美洲",
+    "Puerto Rico": "北美洲", "Trinidad and Tobago": "北美洲",
+    "Barbados": "北美洲", "Costa Rica": "北美洲", "Panama": "北美洲",
+    "Guatemala": "北美洲", "Honduras": "北美洲", "El Salvador": "北美洲",
+    "Nicaragua": "北美洲", "Belize": "北美洲", "Grenada": "北美洲",
+    "Saint Lucia": "北美洲", "Saint Vincent and the Grenadines": "北美洲",
+    "Saint Kitts and Nevis": "北美洲", "Antigua and Barbuda": "北美洲",
+    "Dominica": "北美洲",
+    # 加勒比海/北美属地(Mercury 经销商常见)
+    "Virgin Islands": "北美洲", "British Virgin Islands": "北美洲",
+    "U.S. Virgin Islands": "北美洲",
+    "Cayman Islands": "北美洲", "Turks and Caicos Islands": "北美洲",
+    "Bonaire": "北美洲", "Curacao": "北美洲", "Curaçao": "北美洲",
+    "Aruba": "北美洲",
+    "Guadeloupe": "北美洲", "Martinique": "北美洲",
+
+    # 南美洲
+    "Brazil": "南美洲", "Argentina": "南美洲", "Chile": "南美洲",
+    "Colombia": "南美洲", "Peru": "南美洲", "Venezuela": "南美洲",
+    "Ecuador": "南美洲", "Bolivia": "南美洲", "Paraguay": "南美洲",
+    "Uruguay": "南美洲", "Guyana": "南美洲", "Suriname": "南美洲",
+    "French Guiana": "南美洲",
+
+    # 大洋洲
+    "Australia": "大洋洲", "New Zealand": "大洋洲",
+    "Fiji": "大洋洲", "Papua New Guinea": "大洋洲", "Samoa": "大洋洲",
+    "Tonga": "大洋洲", "Vanuatu": "大洋洲", "Solomon Islands": "大洋洲",
+    "Kiribati": "大洋洲", "Micronesia": "大洋洲", "Palau": "大洋洲",
+    "Marshall Islands": "大洋洲", "Nauru": "大洋洲", "Tuvalu": "大洋洲",
+    # 大洋洲属地
+    "French Polynesia": "大洋洲", "New Caledonia": "大洋洲",
+    "American Samoa": "大洋洲", "Guam": "大洋洲", "Cook Islands": "大洋洲",
+    "Niue": "大洋洲", "Northern Mariana Islands": "大洋洲",
+    "Wallis and Futuna": "大洋洲", "Tokelau": "大洋洲",
+
+    # 亚太地区
+    "China": "亚太地区", "Japan": "亚太地区",
+    "South Korea": "亚太地区", "Korea": "亚太地区", "Republic of Korea": "亚太地区",
+    "North Korea": "亚太地区", "India": "亚太地区", "Pakistan": "亚太地区",
+    "Bangladesh": "亚太地区", "Sri Lanka": "亚太地区", "Nepal": "亚太地区",
+    "Bhutan": "亚太地区", "Maldives": "亚太地区",
+    "Thailand": "亚太地区", "Vietnam": "亚太地区", "Indonesia": "亚太地区",
+    "Philippines": "亚太地区", "Malaysia": "亚太地区", "Singapore": "亚太地区",
+    "Brunei": "亚太地区", "Myanmar": "亚太地区", "Burma": "亚太地区",
+    "Cambodia": "亚太地区", "Laos": "亚太地区", "Mongolia": "亚太地区",
+    "Taiwan": "亚太地区", "Hong Kong": "亚太地区",
+    "Macao": "亚太地区", "Macau": "亚太地区",
+    "East Timor": "亚太地区", "Timor-Leste": "亚太地区",
+
+    # 非洲
+    "Egypt": "非洲", "Libya": "非洲", "Tunisia": "非洲",
+    "Algeria": "非洲", "Morocco": "非洲",
+    "Sudan": "非洲", "South Sudan": "非洲",
+    "Ethiopia": "非洲", "Eritrea": "非洲", "Djibouti": "非洲",
+    "Somalia": "非洲", "Kenya": "非洲", "Uganda": "非洲",
+    "Tanzania": "非洲", "Rwanda": "非洲", "Burundi": "非洲",
+    "Madagascar": "非洲", "Mauritius": "非洲", "Seychelles": "非洲",
+    "Comoros": "非洲", "Mozambique": "非洲", "Zimbabwe": "非洲",
+    "Zambia": "非洲", "Malawi": "非洲", "Angola": "非洲",
+    "Namibia": "非洲", "Botswana": "非洲", "South Africa": "非洲",
+    "Lesotho": "非洲", "Eswatini": "非洲", "Swaziland": "非洲",
+    "Nigeria": "非洲", "Ghana": "非洲",
+    "Cote d'Ivoire": "非洲", "Côte d'Ivoire": "非洲", "Ivory Coast": "非洲",
+    "Senegal": "非洲", "Mali": "非洲", "Burkina Faso": "非洲",
+    "Niger": "非洲", "Chad": "非洲", "Cameroon": "非洲",
+    "Central African Republic": "非洲", "Gabon": "非洲",
+    "Republic of the Congo": "非洲", "Democratic Republic of the Congo": "非洲",
+    "DR Congo": "非洲", "DRC": "非洲", "Congo": "非洲",
+    "Equatorial Guinea": "非洲", "Sao Tome and Principe": "非洲",
+    "Liberia": "非洲", "Sierra Leone": "非洲", "Guinea": "非洲",
+    "Guinea-Bissau": "非洲", "Gambia": "非洲", "The Gambia": "非洲",
+    "Mauritania": "非洲", "Cape Verde": "非洲", "Cabo Verde": "非洲",
+    "Togo": "非洲", "Benin": "非洲",
+    "Sao Tome & Principe": "非洲",
+    # 印度洋/非洲属地
+    "Reunion": "非洲", "Réunion": "非洲", "Mayotte": "非洲",
+}
+
+# 国家英文名 -> 中文(尽量贴近系统字典里的标准名)
+COUNTRY_CN = {
+    # 西北欧
+    "United Kingdom": "英国", "UK": "英国", "Great Britain": "英国",
+    "England": "英国", "Scotland": "英国", "Wales": "英国",
+    "Ireland": "爱尔兰",
+    "Germany": "德国",
+    "France": "法国",
+    "Netherlands": "荷兰", "Holland": "荷兰",
+    "Belgium": "比利时",
+    "Luxembourg": "卢森堡",
+    "Denmark": "丹麦", "Norway": "挪威", "Sweden": "瑞典",
+    "Finland": "芬兰", "Iceland": "冰岛",
+    "Austria": "奥地利", "Switzerland": "瑞士",
+    "Liechtenstein": "列支敦士登",
+    "Luxemburg": "卢森堡",
+    "Faroe Islands": "法罗群岛", "Faeroe Islands": "法罗群岛",
+
+    # 南部欧洲
+    "Italy": "意大利", "Spain": "西班牙", "Portugal": "葡萄牙",
+    "Greece": "希腊", "Croatia": "克罗地亚", "Slovenia": "斯洛文尼亚",
+    "Malta": "马耳他", "Cyprus": "塞浦路斯", "Albania": "阿尔巴尼亚",
+    "Bosnia and Herzegovina": "波斯尼亚和黑塞哥维那（波黑）",
+    "Bosnia": "波斯尼亚和黑塞哥维那（波黑）",
+    "Montenegro": "黑山",
+    "North Macedonia": "北马其顿共和国", "Macedonia": "北马其顿共和国",
+    "Serbia": "塞尔维亚", "Kosovo": "科索沃",
+    "Andorra": "安道尔", "San Marino": "圣马力诺",
+    "Vatican": "梵蒂冈", "Vatican City": "梵蒂冈",
+    "Monaco": "摩纳哥",
+    "Gibraltar": "直布罗陀",
+    "Rep North Macedonia": "北马其顿共和国",
+
+    # 欧洲(其他)
+    "Poland": "波兰", "Czech Republic": "捷克", "Czechia": "捷克",
+    "Hungary": "匈牙利", "Slovakia": "斯洛伐克", "Romania": "罗马尼亚",
+    "Bulgaria": "保加利亚", "Estonia": "爱沙尼亚", "Latvia": "拉脱维亚",
+    "Lithuania": "立陶宛", "Belarus": "白俄罗斯", "Ukraine": "乌克兰",
+    "Russia": "俄罗斯", "Russian Federation": "俄罗斯", "Moldova": "摩尔多瓦",
+
+    # 中东中亚
+    "Saudi Arabia": "沙特阿拉伯",
+    "United Arab Emirates": "阿拉伯联合酋长国（阿联酋）",
+    "UAE": "阿拉伯联合酋长国（阿联酋）",
+    "Qatar": "卡塔尔", "Bahrain": "巴林", "Kuwait": "科威特",
+    "Oman": "阿曼", "Yemen": "也门", "Iran": "伊朗",
+    "Iraq": "伊拉克", "Israel": "以色列", "Palestine": "巴勒斯坦",
+    "Jordan": "约旦", "Lebanon": "黎巴嫩", "Syria": "叙利亚",
+    "Turkey": "土耳其",
+    "Kazakhstan": "哈萨克斯坦", "Uzbekistan": "乌兹别克斯坦",
+    "Turkmenistan": "土库曼斯坦", "Kyrgyzstan": "吉尔吉斯斯坦",
+    "Tajikistan": "塔吉克斯坦", "Afghanistan": "阿富汗",
+    "Armenia": "亚美尼亚", "Azerbaijan": "阿塞拜疆", "Georgia": "格鲁吉亚",
+
+    # 北美洲
+    "United States": "美国", "United States of America": "美国",
+    "USA": "美国", "US": "美国", "U.S.": "美国", "U.S.A.": "美国",
+    "Canada": "加拿大", "Mexico": "墨西哥",
+    "Bahamas": "巴哈马", "Cuba": "古巴", "Jamaica": "牙买加",
+    "Haiti": "海地", "Dominican Republic": "多米尼加共和国",
+    "Puerto Rico": "波多黎各（美）", "Trinidad and Tobago": "特立尼达和多巴哥",
+    "Barbados": "巴巴多斯", "Costa Rica": "哥斯达黎加", "Panama": "巴拿马",
+    "Guatemala": "危地马拉", "Honduras": "洪都拉斯", "El Salvador": "萨尔瓦多",
+    "Nicaragua": "尼加拉瓜", "Belize": "伯利兹", "Grenada": "格林纳达",
+    "Saint Lucia": "圣卢西亚",
+    "Saint Vincent and the Grenadines": "圣文森特和格林纳丁斯",
+    "Saint Kitts and Nevis": "圣基茨和尼维斯",
+    "Antigua and Barbuda": "安提瓜和巴布达",
+    "Dominica": "多米尼克",
+    "Virgin Islands": "维尔京群岛", "British Virgin Islands": "英属维尔京群岛",
+    "U.S. Virgin Islands": "美属维尔京群岛",
+    "Cayman Islands": "开曼群岛", "Turks and Caicos Islands": "特克斯和凯科斯群岛",
+    "Bonaire": "博内尔岛", "Curacao": "库拉索", "Curaçao": "库拉索",
+    "Aruba": "阿鲁巴",
+    "Guadeloupe": "瓜德罗普", "Martinique": "马提尼克",
+
+    # 南美洲
+    "Brazil": "巴西", "Argentina": "阿根廷", "Chile": "智利",
+    "Colombia": "哥伦比亚", "Peru": "秘鲁", "Venezuela": "委内瑞拉",
+    "Ecuador": "厄瓜多尔", "Bolivia": "多民族玻利维亚国", "Paraguay": "巴拉圭",
+    "Uruguay": "乌拉圭", "Guyana": "圭亚那", "Suriname": "苏里南",
+    "French Guiana": "法属圭亚那（法）",
+
+    # 大洋洲
+    "Australia": "澳大利亚", "New Zealand": "新西兰",
+    "Fiji": "斐济群岛", "Papua New Guinea": "巴布亚新几内亚",
+    "Samoa": "萨摩亚", "Tonga": "汤加", "Vanuatu": "瓦努阿图",
+    "Solomon Islands": "所罗门群岛", "Kiribati": "基里巴斯",
+    "Micronesia": "密克罗尼西亚联邦", "Palau": "帕劳",
+    "Marshall Islands": "马绍尔群岛", "Nauru": "瑙鲁", "Tuvalu": "图瓦卢",
+    "French Polynesia": "法属波利尼西亚", "New Caledonia": "新喀里多尼亚",
+    "American Samoa": "美属萨摩亚", "Guam": "关岛", "Cook Islands": "库克群岛",
+    "Niue": "纽埃", "Northern Mariana Islands": "北马里亚纳群岛",
+    "Wallis and Futuna": "瓦利斯和富图纳", "Tokelau": "托克劳",
+
+    # 亚太地区
+    "China": "中国", "Japan": "日本",
+    "South Korea": "韩国", "Korea": "韩国", "Republic of Korea": "韩国",
+    "North Korea": "朝鲜",
+    "India": "印度", "Pakistan": "巴基斯坦",
+    "Bangladesh": "孟加拉国", "Sri Lanka": "斯里兰卡",
+    "Nepal": "尼泊尔", "Bhutan": "不丹", "Maldives": "马尔代夫",
+    "Thailand": "泰国", "Vietnam": "越南", "Indonesia": "印度尼西亚",
+    "Philippines": "菲律宾", "Malaysia": "马来西亚", "Singapore": "新加坡",
+    "Brunei": "文莱", "Myanmar": "缅甸", "Burma": "缅甸",
+    "Cambodia": "柬埔寨", "Laos": "老挝", "Mongolia": "蒙古",
+    "Taiwan": "中国台湾", "Hong Kong": "中国香港",
+    "Macao": "中国澳门", "Macau": "中国澳门",
+    "East Timor": "东帝汶", "Timor-Leste": "东帝汶",
+
+    # 非洲
+    "Egypt": "埃及", "Libya": "利比亚", "Tunisia": "突尼斯",
+    "Algeria": "阿尔及利亚", "Morocco": "摩洛哥",
+    "Sudan": "苏丹", "South Sudan": "南苏丹",
+    "Ethiopia": "埃塞俄比亚", "Eritrea": "厄立特里亚", "Djibouti": "吉布提",
+    "Somalia": "索马里", "Kenya": "肯尼亚", "Uganda": "乌干达",
+    "Tanzania": "坦桑尼亚", "Rwanda": "卢旺达", "Burundi": "布隆迪",
+    "Madagascar": "马达加斯加", "Mauritius": "毛里求斯",
+    "Seychelles": "塞舌尔", "Comoros": "科摩罗",
+    "Mozambique": "莫桑比克", "Zimbabwe": "津巴布韦",
+    "Zambia": "赞比亚", "Malawi": "马拉维", "Angola": "安哥拉",
+    "Namibia": "纳米比亚", "Botswana": "博茨瓦纳", "South Africa": "南非",
+    "Lesotho": "莱索托",
+    "Eswatini": "斯威士兰", "Swaziland": "斯威士兰",
+    "Nigeria": "尼日利亚", "Ghana": "加纳",
+    "Cote d'Ivoire": "科特迪瓦", "Côte d'Ivoire": "科特迪瓦",
+    "Ivory Coast": "科特迪瓦",
+    "Senegal": "塞内加尔", "Mali": "马里",
+    "Burkina Faso": "布基纳法索", "Niger": "尼日尔", "Chad": "乍得",
+    "Cameroon": "喀麦隆",
+    "Central African Republic": "中非", "Gabon": "加蓬",
+    "Republic of the Congo": "刚果共和国[刚果（布）]",
+    "Democratic Republic of the Congo": "刚果民主共和国[刚果（金）]",
+    "DR Congo": "刚果民主共和国[刚果（金）]",
+    "DRC": "刚果民主共和国[刚果（金）]",
+    "Congo": "刚果共和国[刚果（布）]",
+    "Equatorial Guinea": "赤道几内亚",
+    "Sao Tome and Principe": "圣多美和普林西比",
+    "Liberia": "利比里亚", "Sierra Leone": "塞拉利昂",
+    "Guinea": "几内亚", "Guinea-Bissau": "几内亚比绍",
+    "Gambia": "冈比亚", "The Gambia": "冈比亚",
+    "Mauritania": "毛里塔尼亚",
+    "Cape Verde": "佛得角", "Cabo Verde": "佛得角",
+    "Togo": "多哥", "Benin": "贝宁",
+    "Sao Tome & Principe": "圣多美和普林西比",
+    "Reunion": "留尼汪", "Réunion": "留尼汪", "Mayotte": "马约特",
+}
+
+# 常量
+SUBJECT = "全球船厂数据库"  # 线索主题
+SOURCE_CHANNEL = "全网搜索"  # 来源渠道
+DEPARTMENT = "海外销售"     # 线索接收部门
+CUSTOMER_CATEGORY = "船厂"  # 客户归类: 默认全部归到船厂
+
+
+# ============== 工具函数 ==============
+
+def s(v):
+    """安全转字符串,NaN/None 返回空字符串"""
+    if v is None:
+        return ""
+    try:
+        if pd.isna(v):
+            return ""
+    except Exception:
+        pass
+    return str(v).strip()
+
+
+def country_to_region(country):
+    """根据国家英文名匹配大区,匹配不到返回空字符串"""
+    if not country:
+        return ""
+    c = country.strip()
+    if c in COUNTRY_REGION:
+        return COUNTRY_REGION[c]
+    norm = re.sub(r"[^a-zA-Z]", "", c).lower()
+    for k, v in COUNTRY_REGION.items():
+        if re.sub(r"[^a-zA-Z]", "", k).lower() == norm:
+            return v
+    return ""
+
+
+def country_to_chinese(country):
+    """国家英文名 -> 中文。匹配不到原样返回。"""
+    if not country:
+        return ""
+    c = country.strip()
+    if c in COUNTRY_CN:
+        return COUNTRY_CN[c]
+    norm = re.sub(r"[^a-zA-Z]", "", c).lower()
+    for k, v in COUNTRY_CN.items():
+        if re.sub(r"[^a-zA-Z]", "", k).lower() == norm:
+            return v
+    return c  # 找不到就保留原文
+
+
+def receiver_for(region, country):
+    """根据区域+国家拿接收人。中国行接收人留空(系统不接受王书显,会被外层删掉)。"""
+    if region == "亚太地区":
+        if country and country.strip().lower() in ("china", "中国"):
+            return ""  # 中国大陆没有合法接收人,这种行后面会丢弃
+        return REGION_RECEIVER["亚太地区"]
+    return REGION_RECEIVER.get(region, "")
+
+
+def is_bad_date(v):
+    """检测 '----' / '____' 等脏日期"""
+    if v is None:
+        return False
+    try:
+        if pd.isna(v):
+            return False
+    except Exception:
+        pass
+    txt = str(v).strip()
+    if not txt:
+        return False
+    return bool(re.fullmatch(r"[-_\s.]+", txt))
+
+
+def parse_contacts(text):
+    """
+    解析 Primary Contact 字段中的多个联系人,返回 list of dict:
+        [{name, title, email, linkedin}, ...]
+    每个联系人块的结构通常是:
+        姓名
+        职位
+        邮箱
+        LinkedIn 链接
+    若有多个联系人,会按 (邮箱 / linkedin 已收集后再出现普通文本) 切分。
+    """
+    if not text or not text.strip():
+        return []
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+
+    email_re = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
+    def is_email(line):
+        return bool(email_re.search(line))
+    def is_linkedin(line):
+        return "linkedin.com" in line.lower()
+
+    contacts = []
+    cur = {"name": "", "title": "", "email": "", "linkedin": ""}
+
+    def push():
+        nonlocal cur
+        if cur["name"] or cur["email"] or cur["linkedin"]:
+            contacts.append(cur)
+        cur = {"name": "", "title": "", "email": "", "linkedin": ""}
+
+    for line in lines:
+        if is_email(line):
+            email = email_re.search(line).group()
+            if cur["email"]:
+                push()
+                cur["email"] = email
+            else:
+                cur["email"] = email
+        elif is_linkedin(line):
+            url = line
+            m = re.search(r"https?://[^\s,;]+", line)
+            if m:
+                url = m.group().rstrip(",;")
+            else:
+                url = line.strip().rstrip(",;")
+            if cur["linkedin"]:
+                push()
+                cur["linkedin"] = url
+            else:
+                cur["linkedin"] = url
+        else:
+            # 文本(姓名 / 职位)
+            if cur["email"] or cur["linkedin"]:
+                # 已收集到联系信息,再来文本说明是新联系人
+                push()
+                cur["name"] = line
+            elif not cur["name"]:
+                cur["name"] = line
+            elif not cur["title"]:
+                cur["title"] = line
+            else:
+                cur["title"] += " " + line
+
+    push()
+    return contacts
+
+
+def split_social_media(text):
+    """从 Social Media 列拆出 Facebook / Instagram / LinkedIn / Twitter 等"""
+    out = {"facebook": "", "instagram": "", "linkedin": "",
+           "twitter": "", "youtube": "", "tiktok": "", "pinterest": ""}
+    if not text:
+        return out
+    urls = re.split(r"[\s,;]+", text)
+    for u in urls:
+        u = u.strip()
+        if not u:
+            continue
+        low = u.lower()
+        if "facebook.com" in low and not out["facebook"]:
+            out["facebook"] = u
+        elif "instagram.com" in low and not out["instagram"]:
+            out["instagram"] = u
+        elif "linkedin.com" in low and not out["linkedin"]:
+            out["linkedin"] = u
+        elif ("twitter.com" in low or "x.com" in low) and not out["twitter"]:
+            out["twitter"] = u
+        elif "youtube.com" in low and not out["youtube"]:
+            out["youtube"] = u
+        elif "tiktok.com" in low and not out["tiktok"]:
+            out["tiktok"] = u
+        elif "pinterest." in low and not out["pinterest"]:
+            out["pinterest"] = u
+    return out
+
+
+def fmt_date(v):
+    """询盘时间格式化为 YYYY-MM-DD"""
+    if v is None:
+        return ""
+    try:
+        if pd.isna(v):
+            return ""
+    except Exception:
+        pass
+    try:
+        ts = pd.to_datetime(v, errors="coerce")
+        if pd.isna(ts):
+            return s(v)
+        return ts.strftime("%Y-%m-%d")
+    except Exception:
+        return s(v)
+
+
+# ============== 数据校验(双输出 + 已知坑) ==============
+
+# 邮箱里出现这些就算可疑
+_EMAIL_NOISE = (
+    "sentry", "wixpress", "noreply", "no-reply", "donotreply",
+    "do-not-reply", "example.com", "mailto:",
+)
+_URL_HINTS = ("://", "www.", "http")
+
+
+def is_valid_email(addr):
+    if not addr:
+        return True
+    a = addr.strip()
+    if " " in a or "\t" in a or "\n" in a:
+        return False
+    if a.count("@") != 1:
+        return False
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", a):
+        return False
+    low = a.lower()
+    if any(x in low for x in _EMAIL_NOISE):
+        return False
+    return True
+
+
+def looks_like_url(text):
+    if not text:
+        return False
+    t = text.strip().lower()
+    if any(h in t for h in _URL_HINTS):
+        return True
+    if re.search(r"\b[a-z0-9-]+\.(com|net|org|io|co|br|us|uk|de|fr|cn|ru|jp|nl|au|nz|it|es)(\.[a-z]{2,3})?\b", t):
+        return True
+    return False
+
+
+def has_chinese(text):
+    """公司名里出现中文字符,基本是把描述句误填进来了"""
+    if not text:
+        return False
+    return bool(re.search(r"[\u4e00-\u9fff]", text))
+
+
+def validate_row(row):
+    """返回 list[str] 失败原因,空列表表示干净。系统真会拒掉的几种模式。"""
+    reasons = []
+
+    # 必填字段
+    if not str(row.get("客户名称*", "")).strip():
+        reasons.append("缺客户名称")
+    if not str(row.get("国家*", "")).strip():
+        reasons.append("缺国家")
+    if not str(row.get("线索接收人*", "")).strip():
+        reasons.append("缺线索接收人")
+
+    # 公司/联系人名异常
+    company = str(row.get("客户名称*", "")).strip()
+    if looks_like_url(company):
+        reasons.append("客户名称疑似URL")
+    if has_chinese(company):
+        reasons.append("客户名称含中文(可能是描述句)")
+    # 超过 60 字才算太长。正常英文公司名 30~50 字很常见,不能误伤。
+    if len(company) > 60:
+        reasons.append("客户名称过长(>60字)")
+    if looks_like_url(row.get("线索联系人_联系人姓名", "")):
+        reasons.append("联系人姓名疑似URL")
+
+    # 邮箱
+    email = str(row.get("线索联系人_邮箱账号", "")).strip()
+    if not is_valid_email(email):
+        reasons.append("邮箱格式异常")
+
+    # 注: "邮箱有但姓名空" 这条规则会误伤大量公司邮箱(info@...),不在此处过滤
+    # 系统对纯公司邮箱通常是接受的,极少数会拒,留给人工复核
+
+    return reasons
+
+
+# ============== 主转换 ==============
+
+def read_input(path):
+    """根据扩展名读 csv / xlsx,自动跳过 csv 顶部的注释行"""
+    ext = os.path.splitext(path)[1].lower()
+    if ext in (".xlsx", ".xls", ".xlsm"):
+        return pd.read_excel(path)
+    if ext in (".csv", ".tsv", ".txt"):
+        sep = "\t" if ext == ".tsv" else ","
+        # 自动找到含 "Company Name" / "客户名称" 等字样的真表头所在行
+        for skip in (0, 1, 2, 3):
+            try:
+                df = pd.read_csv(path, skiprows=skip, sep=sep,
+                                 encoding="utf-8-sig", engine="python")
+            except Exception:
+                continue
+            cols = [str(c) for c in df.columns]
+            if any(("Company Name" in c) or ("客户名称" in c) or ("公司名称" in c)
+                   for c in cols):
+                return df
+        # 兜底
+        return pd.read_csv(path, encoding="utf-8-sig")
+    raise ValueError(f"不支持的文件类型: {ext}")
+
+
+def convert(input_path, clean_path, issues_path):
+    df = read_input(input_path)
+    # 丢掉公司名为空的脏行
+    name_col = next((c for c in df.columns if "Company Name" in str(c) or "客户名称" in str(c)), None)
+    if name_col:
+        df = df[df[name_col].notna() & (df[name_col].astype(str).str.strip() != "")].reset_index(drop=True)
+
+    col_lookup = {c.lower().replace("\n", "").replace(" ", ""): c for c in df.columns}
+    def col(*candidates):
+        for cand in candidates:
+            key = cand.lower().replace("\n", "").replace(" ", "")
+            if key in col_lookup:
+                return col_lookup[key]
+        return None
+
+    c_company   = col("Company Name", "客户名称")
+    c_category  = col("Category", "所属行业")
+    c_desc      = col("Business Description", "需求详细描述")
+    c_website   = col("Webiste", "Website", "网址")
+    c_country   = col("Country", "国家")
+    c_srclink   = col("来源链接")
+    c_dept      = col("线索接收部门*", "线索接收部门")
+    c_class     = col("客户归类")
+    c_phone     = col("Phone number/Whatsapp", "电话", "手机")
+    c_contact   = col("Primary Contact（Email/Whatsapp)",
+                      "Primary Contact(Email/Whatsapp)",
+                      "Primary Contact")
+    c_company_li = col("Linkedin", "LinkedIn")
+    c_social    = col("Social Media Contact(FB/INS/LINKEDIN)",
+                      "Social Media Contact")
+    c_cdate     = col("Contact Date", "询盘时间")
+    c_feedback  = col("Feedback from client (if any)")
+    c_comment   = col("Comment", "备注")
+    c_replied   = col("是否收到回复？", "是否收到回复")
+
+    # 当天日期(用于生成线索编号),按中国时区
+    yymmdd = datetime.now(CHINA_TZ).strftime("%y%m%d")
+
+    rows = []
+    skipped_china = 0
+    seen_companies = set()  # 用于同公司去重
+
+    for _, r in df.iterrows():
+        country_en = s(r.get(c_country)) if c_country else ""
+        region = country_to_region(country_en)
+        receiver = receiver_for(region, country_en)
+        country = country_to_chinese(country_en)
+
+        # 中国大陆暂无对应接收人,直接跳过避免上传校验失败
+        if region == "亚太地区" and country in ("中国",):
+            skipped_china += 1
+            continue
+
+        contacts = parse_contacts(s(r.get(c_contact)) if c_contact else "")
+        social = split_social_media(s(r.get(c_social)) if c_social else "")
+        company_linkedin = s(r.get(c_company_li)) if c_company_li else ""
+        company = s(r.get(c_company)) if c_company else ""
+        raw_cdate = r.get(c_cdate) if c_cdate else None
+        cdate = "" if is_bad_date(raw_cdate) else (fmt_date(raw_cdate) if c_cdate else "")
+        srclink = s(r.get(c_srclink)) if c_srclink else ""
+        dept = DEPARTMENT  # 统一写"海外销售"
+        klass = CUSTOMER_CATEGORY  # 统一归到 "船厂",忽略原表里的值
+        website = s(r.get(c_website)) if c_website else ""
+        category = s(r.get(c_category)) if c_category else ""
+        desc = s(r.get(c_desc)) if c_desc else ""
+        phone = s(r.get(c_phone)) if c_phone else ""
+
+        remark_parts = []
+        if c_replied:
+            v = s(r.get(c_replied))
+            if v: remark_parts.append(f"是否收到回复:{v}")
+        if c_feedback:
+            v = s(r.get(c_feedback))
+            if v: remark_parts.append(f"反馈:{v}")
+        if c_comment:
+            v = s(r.get(c_comment))
+            if v: remark_parts.append(v)
+        remark = " | ".join(remark_parts)
+
+        # 没有联系人的话,也至少生成一行
+        if not contacts:
+            contacts = [{"name": "", "title": "", "email": "", "linkedin": ""}]
+
+        for idx, ct in enumerate(contacts):
+            # LinkedIn 优先用解析到的个人,否则用公司 LinkedIn(只在第一行用)
+            li = ct["linkedin"] or social["linkedin"] or (company_linkedin if idx == 0 else "")
+            row = {
+                "线索主题*": SUBJECT,
+                "来源渠道*": SOURCE_CHANNEL,
+                "线索评分": "",
+                "询盘时间": cdate,
+                "需求总量": "",
+                "需求详细描述": desc,
+                "线索接收人*": receiver,
+                "线索接收部门*": dept,
+                "来源链接": srclink,
+                "线索编号*": "",
+                "客户名称*": company,
+                "区域": region,
+                "国家*": country,
+                "地址": "",
+                "客户归类": klass,
+                "网址": website,
+                "总机": "",
+                "所属行业": "",
+                "主营产品": "",
+                "线索联系人_联系人姓名": ct["name"],
+                "线索联系人_邮箱账号": ct["email"],
+                "线索联系人_whatsapp": phone if idx == 0 else "",
+                "线索联系人_WeChat": "",
+                "线索联系人_QQ": "",
+                "线索联系人_FaceBook": social["facebook"] if idx == 0 else "",
+                "线索联系人_Instagram": social["instagram"] if idx == 0 else "",
+                "线索联系人_YouTube": social["youtube"] if idx == 0 else "",
+                "线索联系人_Telegram": "",
+                "线索联系人_Twitter(X)": social["twitter"] if idx == 0 else "",
+                "线索联系人_Skype": "",
+                "线索联系人_LinkedIn": li,
+                "线索联系人_ZALO": "",
+                "线索联系人_Viber": "",
+                "线索联系人_旺旺": "",
+                "线索联系人_钉钉": "",
+                "线索联系人_Tiktok": social["tiktok"] if idx == 0 else "",
+                "线索联系人_Line": "",
+                "线索联系人_Messenger": "",
+                "线索联系人_Pinterest": social["pinterest"] if idx == 0 else "",
+                "线索联系人_Reddit": "",
+                "线索联系人_阿里TM": "",
+                "线索联系人_Crunchbase": "",
+                "线索联系人_职位": ct["title"],
+                "线索联系人_Kakaotalk": "",
+                "线索联系人_Wecom": "",
+                "线索联系人_Red": "",
+                "线索联系人_Angellist": "",
+                "线索联系人_Etsy": "",
+                "线索联系人_Shopee": "",
+                "线索联系人_电话": phone if idx == 0 else "",
+                "线索联系人_手机": "",
+                "线索联系人_备注": remark if idx == 0 else "",
+            }
+            # 标记是不是同一公司的"非首条"
+            row["_is_dup_company"] = (idx > 0) or (company.strip().lower() in seen_companies)
+            rows.append(row)
+        if company.strip():
+            seen_companies.add(company.strip().lower())
+
+    # ============== 校验 + 双输出 ==============
+    clean_rows = []
+    issue_rows = []
+
+    for row in rows:
+        reasons = validate_row(row)
+        # 同公司多行只留第一条,其余进问题表
+        if row.pop("_is_dup_company", False):
+            reasons.append("同公司重复(系统拒重复线索)")
+        if reasons:
+            r2 = dict(row)
+            r2["失败原因"] = "; ".join(reasons)
+            issue_rows.append(r2)
+        else:
+            clean_rows.append(row)
+
+    # 编号: 干净行连续, 问题行加 I 前缀以示区分
+    for i, row in enumerate(clean_rows, start=1):
+        row["线索编号*"] = f"BDBM{yymmdd}{i:04d}"
+    for i, row in enumerate(issue_rows, start=1):
+        row["线索编号*"] = f"BDBM{yymmdd}I{i:04d}"
+
+    _write_xlsx(clean_path, TARGET_HEADERS, clean_rows)
+    _write_xlsx(issues_path, TARGET_HEADERS + ["失败原因"], issue_rows)
+
+    print(f"已生成 干净xlsx: {clean_path}  ({len(clean_rows)} 行)")
+    print(f"已生成 问题xlsx: {issues_path}  ({len(issue_rows)} 行)")
+    if skipped_china:
+        print(f"已跳过中国大陆船厂 {skipped_china} 家(系统暂无对应接收人)")
+    if issue_rows:
+        from collections import Counter
+        c = Counter()
+        for r in issue_rows:
+            for reason in r["失败原因"].split("; "):
+                c[reason] += 1
+        print("问题分布:")
+        for reason, n in c.most_common():
+            print(f"  - {reason}: {n}")
+
+
+def _write_xlsx(path, headers, rows):
+    """写带表头样式的 xlsx,线索编号列保持纯文本格式(@)。"""
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "线索"
+    ws.append(headers)
+    header_font = Font(name="Arial", bold=True, color="FFFFFF")
+    header_fill = PatternFill("solid", start_color="305496")
+    for cell in ws[1]:
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    lead_id_col = headers.index("线索编号*") + 1 if "线索编号*" in headers else None
+
+    for i, row in enumerate(rows, start=2):
+        for j, h in enumerate(headers, start=1):
+            v = row.get(h, "")
+            ws.cell(row=i, column=j, value=("" if v is None else v))
+        if lead_id_col:
+            ws.cell(row=i, column=lead_id_col).number_format = "@"
+
+    for row in ws.iter_rows(min_row=2):
+        for cell in row:
+            cell.font = Font(name="Arial")
+            cell.alignment = Alignment(vertical="center", wrap_text=False)
+
+    for i, h in enumerate(headers, start=1):
+        col_letter = ws.cell(row=1, column=i).column_letter
+        ws.column_dimensions[col_letter].width = max(14, min(36, len(str(h)) * 2 + 2))
+    ws.freeze_panes = "A2"
+
+    wb.save(path)
+
+
+def find_desktop():
+    """找到当前用户的桌面路径,兼容 macOS / Windows / Linux"""
+    home = os.path.expanduser("~")
+    candidates = [
+        os.path.join(home, "Desktop"),
+        os.path.join(home, "桌面"),
+        os.path.join(home, "OneDrive", "Desktop"),
+        os.path.join(home, "OneDrive", "桌面"),
+    ]
+    for p in candidates:
+        if os.path.isdir(p):
+            return p
+    return home  # fallback
+
+
+# ======== 在这里改输入/输出文件名(只填文件名,文件就放桌面上) ========
+INPUT_FILE  = "Book1.csv"      # 桌面上的输入文件名
+OUTPUT_FILE = ""               # 留空 = 自动用 输入名_转换后.xlsx / 输入名_问题数据.xlsx
+
+
+def main():
+    desktop = find_desktop()
+
+    if len(sys.argv) >= 2:
+        input_path = sys.argv[1]
+    else:
+        input_path = os.path.join(desktop, INPUT_FILE)
+
+    if len(sys.argv) >= 3:
+        prefix = sys.argv[2]
+        if os.path.isabs(prefix) or os.path.dirname(prefix):
+            base_dir = os.path.dirname(prefix) or desktop
+            base_name = os.path.splitext(os.path.basename(prefix))[0]
+        else:
+            base_dir = desktop
+            base_name = os.path.splitext(prefix)[0]
+    elif OUTPUT_FILE:
+        base_dir = desktop
+        base_name = os.path.splitext(OUTPUT_FILE)[0]
+    else:
+        base_dir = desktop
+        base_name = os.path.splitext(os.path.basename(input_path))[0]
+
+    clean_path  = os.path.join(base_dir, f"{base_name}_转换后.xlsx")
+    issues_path = os.path.join(base_dir, f"{base_name}_问题数据.xlsx")
+
+    if not os.path.exists(input_path):
+        print(f"找不到输入文件: {input_path}")
+        print(f"请把输入文件放到桌面: {desktop}")
+        sys.exit(1)
+
+    print(f"输入: {input_path}")
+    print(f"输出干净: {clean_path}")
+    print(f"输出问题: {issues_path}")
+    convert(input_path, clean_path, issues_path)
+
+
+if __name__ == "__main__":
+    main()
+</script>
+
+<script>
+// ==================== 状态 ====================
+const $ = id => document.getElementById(id);
+const statusEl = $('status'), listEl = $('list'), countEl = $('count');
+const dlClean = $('dlClean'), dlIssues = $('dlIssues');
+const badgeClean = $('badgeClean'), badgeIssues = $('badgeIssues');
+const downloads = $('downloads');
+
+let pyodide = null, pyReady = null;
+let cleanBlob = null, issuesBlob = null;
+let cleanName = '收集_转换后.xlsx', issuesName = '收集_问题数据.xlsx';
+
+const STORAGE_KEY = 'shipyard_ai_collection_v1';
+
+function log(msg, cls) {
+  const span = document.createElement('span');
+  if (cls) span.className = cls;
+  span.textContent = msg + '\n';
+  statusEl.appendChild(span);
+  statusEl.scrollTop = statusEl.scrollHeight;
+}
+
+// ==================== Settings ====================
+const DEFAULT_SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzId4d7vqRF8GRqMzXnYA1u9d5lisu0Gmtma2rAzwoQ6A7ihLaZPsHulJu2RPAy0ucoqg/exec';
+const SHEET_WEBAPP_STORAGE = 'sheet_webapp_url_v1';
+
+// 已经废弃的 deployment URL 列表,自动替换为最新的
+const _DEPRECATED_SHEET_URLS = [
+  'https://script.google.com/macros/s/AKfycbzFrERn0NBk-_zYkoC1l6_BmjJAx4f9CS4EDaweCBXGjnyrg_GvAi1oHh2ZsFJVwsBaqw/exec',
+  'https://script.google.com/macros/s/AKfycbwkE-zbD-lFtH-uj66HKNtm-0wutrCmM10-bHg9A9vMfgKHQG1BCx5qwjfu5EiUBwsPqg/exec',
+];
+const _storedSheetUrl = localStorage.getItem(SHEET_WEBAPP_STORAGE);
+if (!_storedSheetUrl || _DEPRECATED_SHEET_URLS.includes(_storedSheetUrl)) {
+  localStorage.setItem(SHEET_WEBAPP_STORAGE, DEFAULT_SHEET_WEBAPP_URL);
+}
+$('sheetWebappUrl').value = localStorage.getItem(SHEET_WEBAPP_STORAGE);
+$('sheetWebappUrl').addEventListener('input', e => {
+  localStorage.setItem(SHEET_WEBAPP_STORAGE, e.target.value.trim());
+});
+
+// 同步一条记录到 Google Sheet (Apps Script Web App)
+// 同步一条记录到 Google Sheet。
+// force=true 时跳过查重直接添加。
+// 返回:
+//   - { ok: true, id: "BDBM..." }            成功
+//   - { ok: false, duplicate: {id,company,row} }  Sheet 里已存在同名,等用户确认
+//   - { ok: false, error: "..." }            其他错误
+//   - null                                    没配置 URL
+async function syncToSheet(item, force) {
+  const url = localStorage.getItem(SHEET_WEBAPP_STORAGE);
+  if (!url) {
+    log('未配置 Sheet 同步 URL,跳过', 'warn');
+    return null;
+  }
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        company_name: item.company_name || '',
+        category: item.category || 'Boat Manufacturer',
+        business_description: item.business_description || '',
+        website: item.website || '',
+        region: countryToRegion(item.country),
+        status: 'Active',
+        country: item.country || '',
+        phone: item.phone || '',
+        email: item.email || '',
+        linkedin: item.linkedin || '',
+        facebook: item.facebook || '',
+        force: !!force
+      })
+    });
+    const data = await resp.json();
+    if (data && data.success) {
+      log(`✓ 已同步到 Google Sheet: ${data.id}`, 'ok');
+      return { ok: true, id: data.id };
+    }
+    if (data && data.duplicate) {
+      return { ok: false, duplicate: data.duplicate };
+    }
+    log(`✗ Sheet 同步失败: ${data && data.error ? data.error : '未知'}`, 'err');
+    return { ok: false, error: data && data.error };
+  } catch (err) {
+    log(`✗ Sheet 同步出错: ${err.message}`, 'err');
+    return { ok: false, error: err.message };
+  }
+}
+
+// ==================== AI 抓取 ====================
+async function extractFromURL(url) {
+  const resp = await fetch('/api/extract', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url })
+  });
+
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok || data.error) {
+    throw new Error(data.error || `后端接口错误 HTTP ${resp.status}`);
+  }
+  return data;
+}
+
+$('btnExtract').addEventListener('click', async () => {
+  const url = $('urlInput').value.trim();
+  if (!url) { log('先贴一个 URL', 'warn'); return; }
+
+  $('btnExtract').disabled = true;
+  $('btnExtract').textContent = '⏳ AI 抓取中...';
+  $('extractResult').hidden = true;
+
+  try {
+    log('正在调用 /api/extract 后端接口...');
+    const info = await extractFromURL(url);
+    log('提取成功 ✓', 'ok');
+    $('r_company').value = info.company_name || '';
+    $('r_country').value = info.country || '';
+    // category 只接受两个值,AI 给别的就归到 Manufacturer
+    const catRaw = (info.category || '').toLowerCase();
+    $('r_category').value = catRaw.includes('design') ? 'Boat (Yacht) Designer' : 'Boat Manufacturer';
+    $('r_desc').value = info.business_description || '';
+    $('r_website').value = info.website || url;
+    $('r_email').value = info.email || '';
+    $('r_phone').value = info.phone || '';
+    $('r_linkedin').value = info.linkedin || '';
+    $('r_facebook').value = info.facebook || '';
+    $('extractResult').hidden = false;
+  } catch (err) {
+    log('错误: ' + err.message, 'err');
+    console.error(err);
+  } finally {
+    $('btnExtract').disabled = false;
+    $('btnExtract').innerHTML = '🔍 AI 抓取信息';
+  }
+});
+
+$('btnDiscard').addEventListener('click', () => {
+  $('extractResult').hidden = true;
+  $('urlInput').value = '';
+});
+
+// ==================== Collection ====================
+function loadCollection() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch { return []; }
+}
+function saveCollection(arr) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+  renderCollection();
+  renderPreview();
+}
+function renderCollection() {
+  const arr = loadCollection();
+  countEl.textContent = arr.length;
+  if (arr.length === 0) {
+    listEl.innerHTML = '<div class="empty">还没收集,贴 URL 开始 ↑</div>';
+    return;
+  }
+  listEl.innerHTML = arr.map((item, idx) => `
+    <div class="item">
+      <div>
+        <div class="name">${escapeHtml(item.company_name || '(无名)')}${item._sheetId ? ` <span style="color:#0f9d58;font-size:11px;font-weight:normal;background:#e6f4ea;padding:1px 6px;border-radius:4px;margin-left:6px;">📊 ${escapeHtml(item._sheetId)}</span>` : ''}</div>
+        <div class="country">${escapeHtml(item.country || '?')} · ${escapeHtml(item.email || '无邮箱')}</div>
+      </div>
+      <button class="del" data-idx="${idx}">×</button>
+    </div>
+  `).join('');
+  listEl.querySelectorAll('.del').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const i = +e.target.dataset.idx;
+      const a = loadCollection();
+      a.splice(i, 1);
+      saveCollection(a);
+    });
+  });
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]));
+}
+
+// ============== Country -> 大区(团队约定的中文名) ==============
+const COUNTRY_TO_REGION = {
+  // 南欧
+  "Italy":"南欧","Spain":"南欧","Portugal":"南欧","Greece":"南欧",
+  "Croatia":"南欧","Slovenia":"南欧","Malta":"南欧","Cyprus":"南欧",
+  "Monaco":"南欧","Albania":"南欧","Montenegro":"南欧",
+  // 欧洲(除南欧以外)
+  "Germany":"欧洲（除南欧以外）","France":"欧洲（除南欧以外）",
+  "United Kingdom":"欧洲（除南欧以外）","UK":"欧洲（除南欧以外）","England":"欧洲（除南欧以外）",
+  "Netherlands":"欧洲（除南欧以外）","Belgium":"欧洲（除南欧以外）",
+  "Sweden":"欧洲（除南欧以外）","Norway":"欧洲（除南欧以外）",
+  "Denmark":"欧洲（除南欧以外）","Finland":"欧洲（除南欧以外）",
+  "Iceland":"欧洲（除南欧以外）","Ireland":"欧洲（除南欧以外）",
+  "Switzerland":"欧洲（除南欧以外）","Austria":"欧洲（除南欧以外）",
+  "Poland":"欧洲（除南欧以外）","Czech Republic":"欧洲（除南欧以外）","Czechia":"欧洲（除南欧以外）",
+  "Hungary":"欧洲（除南欧以外）","Slovakia":"欧洲（除南欧以外）",
+  "Romania":"欧洲（除南欧以外）","Bulgaria":"欧洲（除南欧以外）",
+  "Estonia":"欧洲（除南欧以外）","Latvia":"欧洲（除南欧以外）",
+  "Lithuania":"欧洲（除南欧以外）","Russia":"欧洲（除南欧以外）",
+  "Ukraine":"欧洲（除南欧以外）","Luxembourg":"欧洲（除南欧以外）",
+  // 北美
+  "United States":"北美","USA":"北美","U.S.":"北美","US":"北美",
+  "Canada":"北美","Mexico":"北美",
+  // 南美
+  "Brazil":"南美","Argentina":"南美","Chile":"南美","Colombia":"南美",
+  "Peru":"南美","Uruguay":"南美","Venezuela":"南美","Ecuador":"南美",
+  "Bolivia":"南美","Paraguay":"南美","Guyana":"南美",
+  // 亚太
+  "China":"亚太","Japan":"亚太","South Korea":"亚太","Korea":"亚太",
+  "India":"亚太","Taiwan":"亚太","Hong Kong":"亚太","Vietnam":"亚太",
+  "Thailand":"亚太","Malaysia":"亚太","Singapore":"亚太","Indonesia":"亚太",
+  "Philippines":"亚太","Pakistan":"亚太","Bangladesh":"亚太",
+  // 中东
+  "Saudi Arabia":"中东","United Arab Emirates":"中东","UAE":"中东",
+  "Qatar":"中东","Bahrain":"中东","Kuwait":"中东","Oman":"中东",
+  "Israel":"中东","Turkey":"中东","Iran":"中东","Iraq":"中东",
+  // 大洋洲
+  "Australia":"大洋洲","New Zealand":"大洋洲","Fiji":"大洋洲",
+  // 非洲
+  "Egypt":"非洲","South Africa":"非洲","Morocco":"非洲","Nigeria":"非洲",
+  "Kenya":"非洲","Tunisia":"非洲","Algeria":"非洲","Ghana":"非洲",
+};
+function countryToRegion(country) {
+  if (!country) return '';
+  const c = country.trim();
+  if (COUNTRY_TO_REGION[c]) return COUNTRY_TO_REGION[c];
+  const norm = c.replace(/[^a-zA-Z]/g, '').toLowerCase();
+  for (const k in COUNTRY_TO_REGION) {
+    if (k.replace(/[^a-zA-Z]/g, '').toLowerCase() === norm) return COUNTRY_TO_REGION[k];
+  }
+  return '未归类';
+}
+
+// ============== 12 列预览表 ==============
+function buildPreviewRows() {
+  const arr = loadCollection();
+  return arr.map((it, idx) => [
+    String(idx + 1),
+    it.company_name || '',
+    it.category || 'Boat Manufacturer',
+    it.business_description || '',
+    it.website || '',
+    countryToRegion(it.country),
+    it.country || '',
+    it.phone || '',
+    it.email || '',
+    'Active',  // Company Status
+    it.linkedin || '',
+    it.facebook || ''
+  ]);
+}
+// 改某条记录的某个字段,然后存回 localStorage
+function updateItem(idx, field, value) {
+  const arr = loadCollection();
+  if (arr[idx]) {
+    arr[idx][field] = value;
+    saveCollection(arr);  // 会重渲染
+  }
+}
+window.updateItem = updateItem;  // inline onchange 用
+
+function renderPreview() {
+  const rows = buildPreviewRows();
+  const body = $('previewBody');
+  if (rows.length === 0) {
+    body.innerHTML = '<tr><td colspan="12" style="padding:14px;text-align:center;color:#a0aec0;">还没收集,贴 URL 开始</td></tr>';
+    return;
+  }
+  // Category 列(第 3 列,index 2)用下拉,其它列只读
+  body.innerHTML = rows.map((r, rowIdx) => '<tr>' +
+    r.map((c, colIdx) => {
+      const baseStyle = 'padding:6px 8px;border:1px solid #e2e8f0;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+      if (colIdx === 2) {
+        // Category 下拉
+        const sel1 = c === 'Boat Manufacturer' ? 'selected' : '';
+        const sel2 = c === 'Boat (Yacht) Designer' ? 'selected' : '';
+        return `<td style="${baseStyle}padding:2px 4px;">
+          <select onchange="updateItem(${rowIdx}, 'category', this.value)"
+                  style="width:100%;border:1px solid #cbd5e0;border-radius:4px;padding:4px;font-size:12px;background:white;">
+            <option value="Boat Manufacturer" ${sel1}>Boat Manufacturer</option>
+            <option value="Boat (Yacht) Designer" ${sel2}>Boat (Yacht) Designer</option>
+          </select>
+        </td>`;
+      }
+      return `<td style="${baseStyle}" title="${escapeHtml(c)}">${escapeHtml(c)}</td>`;
+    }).join('') +
+    '</tr>').join('');
+}
+async function copyPreviewTSV() {
+  const rows = buildPreviewRows();
+  if (rows.length === 0) { log('列表是空的,没东西可复制', 'warn'); return; }
+  // 注意:开头空一格(对应原表里第一列 编号 前的 tab),让粘到企业微信表格时能错位对齐
+  const tsv = rows.map(r => r.join('\t')).join('\n');
+  try {
+    await navigator.clipboard.writeText(tsv);
+    log(`已复制 ${rows.length} 行到剪贴板,粘到企业微信文档即可对齐`, 'ok');
+  } catch (err) {
+    log('复制失败: ' + err.message, 'err');
+  }
+}
+$('btnCopyTable').addEventListener('click', copyPreviewTSV);
+
+$('btnSaveItem').addEventListener('click', async () => {
+  const item = {
+    company_name: $('r_company').value.trim(),
+    country: $('r_country').value.trim(),
+    category: $('r_category').value.trim(),
+    business_description: $('r_desc').value.trim(),
+    website: $('r_website').value.trim(),
+    email: $('r_email').value.trim(),
+    phone: $('r_phone').value.trim(),
+    status: 'Active',
+    linkedin: $('r_linkedin').value.trim(),
+    facebook: $('r_facebook').value.trim(),
+  };
+  if (!item.company_name) { log('公司名不能空', 'err'); return; }
+  if (!item.country) { log('Country 不能空', 'err'); return; }
+
+  $('btnSaveItem').disabled = true;
+  try {
+    log('同步到 Google Sheet (先查重)...');
+    let result = await syncToSheet(item, false);
+
+    // 1) 共享 Sheet 里有重名 -> 弹窗让用户决定
+    if (result && !result.ok && result.duplicate) {
+      const d = result.duplicate;
+      const proceed = confirm(
+        `⚠️ 共享 Sheet 里已存在同名船厂:\n\n` +
+        `公司名: ${d.company}\n` +
+        `编号: ${d.id}\n` +
+        `行号: 第 ${d.row} 行\n\n` +
+        `要继续添加吗?\n` +
+        `(点"确定"=强制添加,可能产生重复)\n` +
+        `(点"取消"=放弃,本地也不存)`
+      );
+      if (!proceed) {
+        log(`已取消(已存在: ${d.id} / ${d.company})`, 'warn');
+        return;  // 啥都不存
+      }
+      log('用户确认强制添加,跳过查重再写一次...', 'warn');
+      result = await syncToSheet(item, true);
+    }
+
+    // 2) 本地保存(就算 sheet 失败也保留)
+    if (result && result.ok) {
+      item._sheetId = result.id;
+    }
+    const arr = loadCollection();
+    arr.push(item);
+    saveCollection(arr);
+    log('已保存: ' + item.company_name + ' (' + item.country + ')', 'ok');
+    $('extractResult').hidden = true;
+    $('urlInput').value = '';
+  } finally {
+    $('btnSaveItem').disabled = false;
+  }
+});
+
+$('btnClear').addEventListener('click', () => {
+  if (!confirm('清空所有已收集船厂?')) return;
+  saveCollection([]);
+});
+
+// ==================== 导出到 xlsx ====================
+async function initPyodide() {
+  if (pyReady) return pyReady;
+  pyReady = (async () => {
+    log('加载 Pyodide(首次约 20s)...');
+    pyodide = await loadPyodide();
+    log('加载 pandas + openpyxl...');
+    await pyodide.loadPackage(['pandas', 'micropip']);
+    await pyodide.runPythonAsync(`
+import micropip
+await micropip.install('openpyxl')
+`);
+    log('载入转换函数...');
+    const pyCode = $('convert_py').textContent.split(/^if __name__ == "__main__":/m)[0];
+    await pyodide.runPythonAsync(pyCode);
+    log('就绪 ✓', 'ok');
+  })();
+  return pyReady;
+}
+
+function collectionToCSV(arr) {
+  const HEADERS = ['Company Name','Country','Website','Phone number/Whatsapp',
+                   'Primary Contact','Linkedin','Social Media Contact',
+                   'Contact Date','Comment','Business Description'];
+  const esc = v => {
+    v = String(v ?? '');
+    if (/[",\n]/.test(v)) return '"' + v.replace(/"/g,'""') + '"';
+    return v;
+  };
+  const lines = [HEADERS.join(',')];
+  for (const it of arr) {
+    lines.push([
+      it.company_name, it.country, it.website, it.phone,
+      it.email,  // Primary Contact 直接放邮箱即可,parse_contacts 会处理
+      it.linkedin, it.facebook,
+      '', '',  // Contact Date / Comment 留空
+      it.business_description
+    ].map(esc).join(','));
+  }
+  return lines.join('\n');
+}
+
+$('btnConvertAll').addEventListener('click', async () => {
+  const arr = loadCollection();
+  if (arr.length === 0) { log('收集列表是空的', 'warn'); return; }
+  log('开始转换 ' + arr.length + ' 家船厂...');
+  $('btnConvertAll').disabled = true;
+  downloads.classList.remove('show');
+  dlClean.disabled = true; dlIssues.disabled = true;
+
+  try {
+    await initPyodide();
+    const csv = collectionToCSV(arr);
+    pyodide.FS.writeFile('/tmp/input.csv', csv);
+    pyodide.runPython(`
+import io, sys
+_buf = io.StringIO()
+_old = sys.stdout
+sys.stdout = _buf
+try:
+    convert("/tmp/input.csv", "/tmp/clean.xlsx", "/tmp/issues.xlsx")
+finally:
+    sys.stdout = _old
+_log_output = _buf.getvalue()
+`);
+    const pyLog = pyodide.globals.get('_log_output');
+    pyLog.split('\n').forEach(l => l.trim() && log('  ' + l));
+
+    const cb = pyodide.FS.readFile('/tmp/clean.xlsx');
+    const ib = pyodide.FS.readFile('/tmp/issues.xlsx');
+    cleanBlob = new Blob([cb], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    issuesBlob = new Blob([ib], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+
+    const ts = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    cleanName = 'AI收集_' + ts + '_转换后.xlsx';
+    issuesName = 'AI收集_' + ts + '_问题数据.xlsx';
+
+    const m1 = pyLog.match(/干净xlsx:.*?\((\d+)\s*行\)/);
+    const m2 = pyLog.match(/问题xlsx:.*?\((\d+)\s*行\)/);
+    if (m1) badgeClean.textContent = m1[1] + ' 行';
+    if (m2) badgeIssues.textContent = m2[1] + ' 行';
+
+    dlClean.disabled = false;
+    dlIssues.disabled = false;
+    downloads.classList.add('show');
+    log('完成 ✓ 下载后,可点 "清空列表" 开始下一批', 'ok');
+  } catch (err) {
+    log('转换错误: ' + (err.message || err), 'err');
+    console.error(err);
+  } finally {
+    $('btnConvertAll').disabled = false;
+  }
+});
+
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+dlClean.addEventListener('click', () => cleanBlob && downloadBlob(cleanBlob, cleanName));
+dlIssues.addEventListener('click', () => issuesBlob && downloadBlob(issuesBlob, issuesName));
+
+// ==================== 启动 ====================
+renderCollection();
+renderPreview();
+$('keyStatus').textContent = '✓ AI Key 已改为 Vercel 后端读取';
+$('keyStatus').style.color = '#48bb78';
+log('就绪 ✓ 贴 URL 开始');
+</script>
+
+</body>
+</html>
