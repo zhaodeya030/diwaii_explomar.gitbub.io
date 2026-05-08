@@ -30,8 +30,6 @@ URL: `;
 const GEMINI_CONFIGS = [
   { model: 'gemini-2.5-flash', tool: 'url_context' },
   { model: 'gemini-flash-latest', tool: 'url_context' },
-  { model: 'gemini-2.0-flash-lite', tool: 'url_context' },
-  { model: 'gemini-2.0-flash', tool: 'url_context' },
   { model: 'gemini-2.5-flash', tool: 'google_search' },
 ];
 
