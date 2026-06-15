@@ -70,7 +70,7 @@ def fetch_news(keywords):
 
     response = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=2000,
+        max_tokens=8000,
         tools=[{"type": "web_search_20250305", "name": "web_search"}],
         messages=[{"role": "user", "content": prompt}],
     )
@@ -111,7 +111,7 @@ def _repair_articles(client, broken):
     )
     resp = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=2000,
+        max_tokens=8000,
         messages=[{"role": "user", "content": prompt}],
     )
     fixed = "".join(b.text for b in resp.content if b.type == "text")
