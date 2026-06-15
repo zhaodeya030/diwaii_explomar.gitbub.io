@@ -22,7 +22,7 @@ CONFIG = {
         "enabled": True,
         "smtp_server": "smtp.gmail.com",
         "smtp_port": 587,
-        "sender": os.getenv("EMAIL_SENDER"),
+        "sender": os.getenv("EMAIL_SENDER", "deyaz@uci.edu"),
         "password": os.getenv("EMAIL_PASSWORD"),
         "recipients": [os.getenv("EMAIL_RECIPIENT", "zhaodeya@gmail.com")],
     },
