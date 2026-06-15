@@ -64,7 +64,9 @@ def fetch_news(keywords):
 1. 只返回7天内的新闻
 2. 优先选与小鹏游艇/飞鱼项目直接相关的
 3. 最多返回8条
-4. 只返回 JSON，不要任何解释"""
+4. 只返回 JSON，不要任何解释、不要 markdown 代码块
+5. 字符串内部不要出现英文双引号 " ，需要引用时一律用中文「」
+6. 每个字段写成一行，summary 内不要换行"""
 
     response = client.messages.create(
         model="claude-sonnet-4-6",
@@ -78,15 +80,42 @@ def fetch_news(keywords):
         if block.type == "text":
             text += block.text
 
+    data = _parse_articles(text)
+    if data is None:
+        print("[警告] JSON 解析失败，尝试让 Claude 修复...")
+        data = _repair_articles(client, text)
+    if data is None:
+        print(f"[警告] 修复后仍无法解析，原始内容：\n{text}")
+        return []
+    return data
+
+
+def _parse_articles(text):
     text = text.strip().replace("```json", "").replace("```", "").strip()
     try:
         return json.loads(text).get("articles", [])
     except json.JSONDecodeError:
         match = re.search(r'\{[\s\S]*\}', text)
         if match:
-            return json.loads(match.group()).get("articles", [])
-        print(f"[警告] JSON 解析失败：\n{text}")
-        return []
+            try:
+                return json.loads(match.group()).get("articles", [])
+            except json.JSONDecodeError:
+                return None
+    return None
+
+
+def _repair_articles(client, broken):
+    prompt = (
+        "下面的内容本应是 JSON，但格式有误。请修复成严格合法的 JSON，"
+        "保持原有数据不变，只返回 JSON 本身，不要任何解释或 markdown：\n\n" + broken
+    )
+    resp = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=2000,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    fixed = "".join(b.text for b in resp.content if b.type == "text")
+    return _parse_articles(fixed)
 
 
 # ─────────────────────────────────────────────
