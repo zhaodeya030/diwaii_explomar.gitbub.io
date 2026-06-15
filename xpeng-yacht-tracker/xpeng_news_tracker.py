@@ -22,9 +22,9 @@ CONFIG = {
         "enabled": True,
         "smtp_server": "smtp.gmail.com",
         "smtp_port": 587,
-        "sender": os.getenv("EMAIL_SENDER", "deyaz@uci.edu"),
+        "sender": os.getenv("EMAIL_SENDER") or "deyaz@uci.edu",
         "password": os.getenv("EMAIL_PASSWORD"),
-        "recipients": [os.getenv("EMAIL_RECIPIENT", "zhaodeya@gmail.com")],
+        "recipients": [os.getenv("EMAIL_RECIPIENT") or "zhaodeya@gmail.com"],
     },
     "keywords": [
         "小鹏 游艇",
